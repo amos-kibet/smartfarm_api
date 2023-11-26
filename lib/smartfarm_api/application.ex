@@ -7,26 +7,32 @@ defmodule SmartfarmApi.Application do
 
   @impl true
   def start(_type, _args) do
-    children = [
-      # Start the Telemetry supervisor
-      SmartfarmApiWeb.Telemetry,
-      # Start the Ecto repository
-      SmartfarmApi.Repo,
-      # Start the PubSub system
-      {Phoenix.PubSub, name: SmartfarmApi.PubSub},
-      # Start Finch
-      {Finch, name: SmartfarmApi.Finch},
-      # Start the Endpoint (http/https)
-      SmartfarmApiWeb.Endpoint
-      # Start a worker by calling: SmartfarmApi.Worker.start_link(arg)
-      # {SmartfarmApi.Worker, arg}
-    ]
+    children =
+      [
+        # Start the Telemetry supervisor
+        SmartfarmApiWeb.Telemetry,
+        # Start the Ecto repository
+        SmartfarmApi.Repo,
+        # Start the PubSub system
+        {Phoenix.PubSub, name: SmartfarmApi.PubSub},
+        # Start Finch
+        {Finch, name: SmartfarmApi.Finch},
+        # Start the Endpoint (http/https)
+        SmartfarmApiWeb.Endpoint
+
+        # Start a worker by calling: SmartfarmApi.Worker.start_link(arg)
+        # {SmartfarmApi.Worker, arg}
+      ] ++ more_children()
 
     # See https://hexdocs.pm/elixir/Supervisor.html
     # for other strategies and supported options
     opts = [strategy: :one_for_one, name: SmartfarmApi.Supervisor]
     Supervisor.start_link(children, opts)
   end
+
+  defp more_children(env \\ Application.get_env(:smartfarm_api, :env))
+  defp more_children(:test), do: []
+  defp more_children(_env), do: [{Task.Supervisor, name: SmartfarmApi.TaskSupervisor}]
 
   # Tell Phoenix to update the endpoint configuration
   # whenever the application is updated.
