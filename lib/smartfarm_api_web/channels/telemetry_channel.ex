@@ -4,33 +4,31 @@ defmodule SmartfarmApiWeb.Channels.TelemetryChannel do
 
   require Logger
 
+  alias SmartfarmApi.Query
+  alias SmartfarmApi.Schema.Telemetry
+
   @impl true
   def join("telemetry:smartfarm", payload, socket) do
     if authorized?(payload) do
-      Logger.info("Client joined \"telemetry:smartfarm\" channel")
+      Logger.info("Client joined \"telemetry:smartfarm\" channel.")
 
-      with {:ok, pid} <- start_mqtt_broker(),
-           {:ok, _, _} <-
-             :emqtt.subscribe(pid, "sensors/#") do
-        send(self(), :after_join)
+      socket =
+        socket
+        |> assign(
+          telemetry: %{
+            air_temperature: 0,
+            soil_temperature: 0,
+            humidity: 0,
+            rainfall_intensity: 0,
+            sunlight_intensity: 0,
+            soil_ph: 0,
+            timestamp: "0"
+          }
+        )
 
-        {_, seconds_timestamp, _} = :os.timestamp()
+      send(self(), :after_join)
 
-        socket =
-          socket
-          |> assign(
-            mqtt_client_pid: pid,
-            telemetry: %{
-              air_temperature: 0,
-              soil_temperature: 0,
-              humidity: 0,
-              rainfall: 0,
-              timestamp: seconds_timestamp
-            }
-          )
-
-        {:ok, socket}
-      end
+      {:ok, socket}
     else
       {:error, %{reason: "unauthorized"}}
     end
@@ -38,61 +36,31 @@ defmodule SmartfarmApiWeb.Channels.TelemetryChannel do
 
   @impl true
   def handle_info(:after_join, socket) do
-    telemetry = socket.assigns[:telemetry]
+    schedule_telemetry_fetch(2_000)
+
+    {:noreply, socket}
+  end
+
+  def handle_info(:publish_latest_telemetry, socket) do
+    telemetry = Query.latest_telemetry(Telemetry)
+
+    telemetry = %{
+      air_temperature: telemetry.air_temperature,
+      soil_temperature: telemetry.soil_temperature,
+      humidity: telemetry.humidity,
+      rainfall_intensity: telemetry.rainfall_intensity,
+      sunlight_intensity: telemetry.sunlight_intensity,
+      soil_ph: telemetry.soil_ph,
+      timestamp: telemetry.timestamp
+    }
+
+    Logger.info("Sending Telemetry: \n#{inspect(telemetry)}")
 
     push(socket, "telemetry", telemetry)
 
-    Logger.info("Server sent telemetry: #{inspect(telemetry)}")
+    schedule_telemetry_fetch(2_000)
 
-    {:noreply, socket}
-  end
-
-  @impl true
-  def handle_info({:publish, packet}, socket) do
-    {:ok, telemetry} = get_telemetry(parse_topic(packet), packet)
-
-    air_temperature_telemetry = telemetry["temperature"]
-    soil_temperature_telemetry = telemetry["temperature"]
-    humidity_telemetry = telemetry["humidity"]
-    rainfall_telemetry = telemetry["rainfall"] || 0
-
-    {_, seconds_timestamp, _} = :os.timestamp()
-
-    socket =
-      socket
-      |> assign(:telemetry, %{
-        air_temperature: air_temperature_telemetry,
-        soil_temperature: soil_temperature_telemetry,
-        humidity: humidity_telemetry,
-        rainfall: rainfall_telemetry
-      })
-
-    # Send data to WebSocket clients
-    push(
-      socket,
-      "telemetry",
-      %{
-        air_temperature: air_temperature_telemetry,
-        soil_temperature: soil_temperature_telemetry,
-        humidity: humidity_telemetry,
-        rainfall: rainfall_telemetry,
-        timestamp: seconds_timestamp
-      }
-    )
-
-    Logger.info("Server sent telemetry: #{inspect(telemetry)}")
-
-    {:noreply, socket}
-  end
-
-  defp start_mqtt_broker do
-    emqtt_opts =
-      Application.get_env(:smartfarm_api, :emqtt)
-
-    with {:ok, pid} <- :emqtt.start_link(emqtt_opts),
-         {:ok, _} = :emqtt.connect(pid) do
-      {:ok, pid}
-    end
+    {:noreply, assign(socket, :telemetry, telemetry)}
   end
 
   # Add authorization logic here as required.
@@ -100,11 +68,7 @@ defmodule SmartfarmApiWeb.Channels.TelemetryChannel do
     true
   end
 
-  defp get_telemetry(["sensors", "smartfarm"], %{payload: payload}) do
-    {:ok, _telemetry} = Jason.decode(payload)
-  end
-
-  defp parse_topic(%{topic: topic}) do
-    String.split(topic, "/", trim: true)
+  defp schedule_telemetry_fetch(interval) do
+    Process.send_after(self(), :publish_latest_telemetry, interval)
   end
 end

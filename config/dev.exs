@@ -72,3 +72,5 @@ config :smartfarm_api, :emqtt,
 config :smartfarm_api, :client_id, "smartfarm"
 
 config :smartfarm_api, :timespan, 60
+
+config :smartfarm_api, :websocket_token, "smartfarm"

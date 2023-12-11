@@ -35,7 +35,7 @@ defmodule SmartfarmApi.Schema.Telemetry do
           rainfall_intensity: float,
           sunlight_intensity: float,
           soil_ph: float,
-          timestamp: String
+          timestamp: String.t()
         }
 
   @type changeset :: Ecto.Changeset.t()

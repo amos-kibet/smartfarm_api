@@ -7,17 +7,12 @@ defmodule SmartfarmApiWeb.V1.TelemetryController do
   @type conn :: Plug.Conn.t()
 
   @spec create(conn(), map()) :: conn()
-  def create(conn, %{"data" => data} = _params) do
+  def create(conn, %{"telemetry" => data} = _params) do
     case validate_data(data) do
       {:ok, data} ->
         Task.Supervisor.async_nolink(SmartfarmApi.TaskSupervisor, fn ->
           Context.create(Telemetry, data)
         end)
-
-        # TODO: to be uncomented once implemented
-        # Task.Supervisor.async_nolink(SmartfarmApi.TaskSupervisor, fn ->
-        #   Phoenix.PubSub.broadcast("telemetry", "new_data", data)
-        # end)
 
         conn
         |> put_resp_content_type("application/json")
