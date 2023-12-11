@@ -5,9 +5,13 @@ defmodule SmartfarmApiWeb.Router do
     plug :accepts, ["json"]
   end
 
-  scope "/api/v1", SmartfarmApiWeb do
+  scope "/api/", SmartfarmApiWeb do
     pipe_through :api
     get "/health", ApiHealthController, :index
+  end
+
+  scope "/api/v1", SmartfarmApiWeb do
+    pipe_through :api
     post "/telemetry", V1.TelemetryController, :create
   end
 
