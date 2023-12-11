@@ -5,9 +5,10 @@ defmodule SmartfarmApiWeb.Router do
     plug :accepts, ["json"]
   end
 
-  scope "/api", SmartfarmApiWeb do
+  scope "/api/v1", SmartfarmApiWeb do
     pipe_through :api
     get "/health", ApiHealthController, :index
+    post "/telemetry", V1.TelemetryController, :create
   end
 
   # Enable Swoosh mailbox preview in development

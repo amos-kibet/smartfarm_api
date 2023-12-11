@@ -14,7 +14,11 @@ defmodule SmartfarmApiWeb.Endpoint do
   # socket "/live", Phoenix.LiveView.Socket, websocket: [connect_info: [session: @session_options]]
 
   socket "/socket", SmartfarmApiWeb.WebSockets.TelemetrySocket,
-    websocket: [fullsweep_after: 0],
+    websocket: [
+      # check_origin: ["http://localhost:3000", "any other origin"],
+      error_handler: {SmartfarmApiWeb.WebSockets.TelemetrySocket, :handle_error, []},
+      fullsweep_after: 0
+    ],
     longpoll: false
 
   # Serve at "/" the static files from "priv/static" directory.
