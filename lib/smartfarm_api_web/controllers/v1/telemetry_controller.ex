@@ -31,7 +31,7 @@ defmodule SmartfarmApiWeb.V1.TelemetryController do
   def create(conn, _params) do
     conn
     |> put_resp_content_type("application/json")
-    |> send_resp(400, Jason.encode!(%{status: "error", message: "Invalid data format."}))
+    |> send_resp(400, Jason.encode!(%{status: "error", message: "Invalid data format!"}))
   end
 
   defp validate_data(data) do
@@ -48,7 +48,7 @@ defmodule SmartfarmApiWeb.V1.TelemetryController do
         {:ok, data}
 
       _ ->
-        {:error, "Invalid data format."}
+        {:error, "Invalid data format!"}
     end
   end
 end

@@ -38,7 +38,7 @@ https://smartfarm-api.fly.dev/api/v1/telemetry
 
 **Data Structure:**
 
-You will get data that looks like this:
+You will have to post data that looks like this:
 
 ```JSON
 {"telemetry":
@@ -68,6 +68,6 @@ If unsuccessful, you will get an API response like this:
 ```JSON
 {
     "status": "error",
-    "message": "Invalid data format."
+    "message": "Invalid data format!"
 }
 ```
