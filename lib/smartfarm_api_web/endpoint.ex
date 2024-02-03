@@ -15,7 +15,12 @@ defmodule SmartfarmApiWeb.Endpoint do
 
   socket "/socket", SmartfarmApiWeb.WebSockets.TelemetrySocket,
     websocket: [
-      # check_origin: ["http://localhost:3000", "any other origin"],
+      check_origin: [
+        "http://localhost:3001",
+        "http://127.0.0.1:3001",
+        "http://localhost:3000",
+        "http://127.0.0.1:3000"
+      ],
       error_handler: {SmartfarmApiWeb.WebSockets.TelemetrySocket, :handle_error, []},
       fullsweep_after: 0
     ],
