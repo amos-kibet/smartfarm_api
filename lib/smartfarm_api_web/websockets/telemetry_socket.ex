@@ -27,7 +27,7 @@ defmodule SmartfarmApiWeb.WebSockets.TelemetrySocket do
   @spec id(socket) :: nil
   def id(_socket), do: nil
 
-  defp authorized?(client_token) do
+  defp authorized?(_client_token) do
     # token = Application.get_env(:smartfarm_api, :websocket_token)
 
     # if client_token == token, do: true, else: false
