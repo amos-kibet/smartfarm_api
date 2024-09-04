@@ -19,7 +19,8 @@ defmodule SmartfarmApiWeb.Endpoint do
         "http://localhost:3001",
         "http://127.0.0.1:3001",
         "http://localhost:3000",
-        "http://127.0.0.1:3000"
+        "http://127.0.0.1:3000",
+        "https://smartfarm-dashboard-iota.vercel.app"
       ],
       error_handler: {SmartfarmApiWeb.WebSockets.TelemetrySocket, :handle_error, []},
       fullsweep_after: 0
